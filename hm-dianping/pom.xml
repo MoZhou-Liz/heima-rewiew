@@ -76,6 +76,13 @@
             <artifactId>redisson</artifactId>
             <version>3.25.2</version>
         </dependency>
+<!--        Swagger-->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.6.15</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -89,14 +89,22 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                     MapRecord<String, Object, Object> record = list.get(0);
                     Map<Object, Object> values = record.getValue();
                     VoucherOrder voucherOrder = BeanUtil.fillBeanWithMap(values, new VoucherOrder(), true);
-                    handleVoucherOrder(voucherOrder);
+                    //MQ消费者幂等性
+                    Long userId=voucherOrder.getUserId();
+                    Long voucherId=voucherOrder.getVoucherId();
+                    String Idepotency="order:"+userId+":"+voucherId;
+                    boolean success=stringRedisTemplate.opsForValue().setIfAbsent(Idepotency,"1", Duration.ofMinutes(5));
+                    if(Boolean.FALSE.equals(success)){
+                        stringRedisTemplate.opsForStream().acknowledge(queueName,"g1",record.getId());
+                        continue;
+                    }
                     //有消息，获取成功，可以下单
+                    handleVoucherOrder(voucherOrder);
                     //ACK确认
                     stringRedisTemplate.opsForStream().acknowledge(queueName,"g1",record.getId());
                     //创建订单（写入MySQL）
                 } catch (Exception e) {
                     log.error("处理订单异常",e);
-
                     handlePendingList();
                 }
 
@@ -300,7 +308,5 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
             //返回订单id
             save(voucherOrder);
-
-
     }
 }
