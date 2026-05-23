@@ -66,7 +66,8 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
             return null;
         }
         //数据库查到数据,同步写回redis和caffeine
-        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(voucher), 30, TimeUnit.MINUTES);
+        int randomMinutes = cn.hutool.core.util.RandomUtil.randomInt(1, 6);
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(voucher), 30+randomMinutes, TimeUnit.MINUTES);
         seckillVoucherCache.put(id, voucher);
         return voucher;
     }

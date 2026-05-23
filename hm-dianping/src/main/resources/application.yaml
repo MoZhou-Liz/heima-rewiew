@@ -25,7 +25,16 @@ spring:
     port: 5673
     username: sumu
     password: "123456"
-    virtual-host: /
+    # 开启生产者消息确认机制（消息是否成功到达交换机）
+    publisher-confirm-type: correlated
+    # 开启生产者消息回退机制（消息是否成功从交换机路由到队列）
+    publisher-returns: true
+    listener:
+      simple:
+        # 将消费者的签收模式从 auto（自动）改为 manual（手动 ACK）
+        acknowledge-mode: manual
+        # 消费者预取值，防止单个消费者一次性抓取太多消息导致内存溢出（压死骆驼的最后一根稻草）
+        prefetch: 1
 mybatis-plus:
   type-aliases-package: com.hmdp.entity # 别名扫描包
 logging:
